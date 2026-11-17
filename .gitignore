@@ -1,0 +1,19 @@
+# 构建产物与本地文件
+build/
+*.exe
+*.dll
+*.bak
+*.pem
+*.log
+
+# IDE / 编辑器
+.screenshots/
+.trae/
+.vscode/
+.idea/
+*.swp
+*.tmp
+
+# 系统文件
+Thumbs.db
+Desktop.ini

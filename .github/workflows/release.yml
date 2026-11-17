@@ -1,0 +1,51 @@
+name: build-and-release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag（留空则只打包，不创建/上传 release）"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: false
+
+      - name: Build
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path build | Out-Null
+          go build -trimpath -ldflags "-H windowsgui -s -w" -o build/navicat-crack.exe .
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Get-ChildItem build/navicat-crack.exe | Format-Table Name, Length
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: navicat-crack-${{ github.run_number }}
+          path: build/navicat-crack.exe
+          if-no-files-found: error
+
+      - name: Create or update release
+        if: inputs.tag != ''
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.tag }}
+          name: ${{ inputs.tag }}
+          files: build/navicat-crack.exe
+          generate_release_notes: true
+          overwrite_files: true
